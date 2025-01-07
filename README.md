@@ -6,4 +6,4 @@ Hodinky stavíme ve více lidech, raději tedy předem ještě poznamenávám ž
 
 Vývoj se odehrává v jiném repozitáři na naší organizaci a zveřejníme ho až bude ve stabilnějším stádiu.
 
-V README jednotlivých složek ([src](src/README.md) a [PCBs](PCBs/README.md)) se zdroji jsou popsány části které jsem dělal nebo se na nich podílel.
+V README jednotlivých složek ([src](src/) a [PCBs](PCBs/)) se zdroji jsou popsány části které jsem dělal nebo se na nich podílel.
