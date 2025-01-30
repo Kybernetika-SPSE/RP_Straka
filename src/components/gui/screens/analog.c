@@ -1,5 +1,7 @@
 #include "analog.h"
 #include "core/lv_obj.h"
+#include "draw/sw/lv_draw_sw_gradient.h"
+#include "misc/lv_palette.h"
 #include "widgets/label/lv_label.h"
 #include "widgets/line/lv_line.h"
 #include "gui.h"
@@ -15,7 +17,6 @@ lv_obj_t* watchface_analog_init(void)
     lv_obj_remove_flag(analog, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scrollbar_mode(analog, LV_SCROLLBAR_MODE_OFF);
     lv_obj_add_style(analog, &watchface_base, 0);
-    lv_obj_set_style_bg_color(analog, lv_color_hex(0x440000), LV_PART_MAIN);
 
     //Gray layer with all the watch stuff on it
     lv_obj_t * analog_mask2 = lv_obj_create(analog);
@@ -31,7 +32,7 @@ lv_obj_t* watchface_analog_init(void)
 
         //Every THICKER_LINE_FREQ-th line make a different shade
         uint8_t shade = i%THICKER_LINE_FREQ==0 ? 3 : 1;
-        lv_obj_set_style_line_color(line, lv_palette_darken(LV_PALETTE_GREY, shade), 0);
+        lv_obj_set_style_line_color(line, lv_color_hex(0xAAAAAA), 0);
 
         //Every THICKER_LINE_FREQ-th line make a different thickness
         uint8_t width = i%THICKER_LINE_FREQ==0 ? 3 : 2;
@@ -67,7 +68,7 @@ lv_obj_t* watchface_analog_init(void)
 
     //Hour hand
     analog_hour = lv_line_create(analog_mask2);
-    lv_obj_set_style_line_color(analog_hour, lv_palette_darken(LV_PALETTE_RED, 4), 0);
+    lv_obj_set_style_line_color(analog_hour, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_line_width(analog_hour, 4, 0);
     lv_obj_set_style_line_rounded(analog_hour, true, 0);
     lv_line_set_points_mutable(analog_hour, hour_points, 2);
@@ -75,7 +76,7 @@ lv_obj_t* watchface_analog_init(void)
 
     //Minute hand
     analog_min = lv_line_create(analog_mask2);
-    lv_obj_set_style_line_color(analog_min, lv_palette_darken(LV_PALETTE_GREY, 1), 0);
+    lv_obj_set_style_line_color(analog_min, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_line_width(analog_min, 3, 0);
     lv_obj_set_style_line_rounded(analog_min, true, 0);
     lv_line_set_points_mutable(analog_min, min_points, 2);
@@ -83,18 +84,23 @@ lv_obj_t* watchface_analog_init(void)
 
     //Second hand
     analog_sec = lv_line_create(analog_mask2);
-    lv_obj_set_style_line_color(analog_sec, lv_palette_darken(LV_PALETTE_ORANGE, 1), 0);
+    lv_obj_set_style_line_color(analog_sec, lv_color_hex(0xff6200), 0);
     lv_obj_set_style_line_width(analog_sec, 2, 0);
     lv_obj_set_style_line_rounded(analog_sec, true, 0);
     lv_line_set_points_mutable(analog_sec, sec_points, 2);
     lv_obj_set_size(analog_sec, 466, 466);
 
     //Axis - that small white circle in the middle
+    static lv_style_t style_axis;
+    lv_style_init(&style_axis);
+    lv_style_set_bg_color(&style_axis, lv_color_white());
+    lv_style_set_bg_opa(&style_axis, LV_OPA_COVER);
+    lv_style_set_border_width(&style_axis, 0);
     lv_obj_t * analog_axis = lv_obj_create(analog_mask2);
     lv_obj_set_size(analog_axis, 15, 15);
     lv_obj_center(analog_axis);
-    lv_obj_add_style(analog_axis, &watchface_base, 0);
-    lv_obj_set_style_bg_color(analog_axis, lv_color_white(), 0);
+    lv_obj_add_style(analog_axis, &style_axis, 0);
+
 
     analog_timer = lv_timer_create(watchface_analog_update_time, 10, NULL);
     lv_obj_add_event_cb(analog, watchface_analog_remove_timer, LV_EVENT_DELETE, NULL);

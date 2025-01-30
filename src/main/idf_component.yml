@@ -4,8 +4,6 @@ dependencies:
     version: master
   idf:
     version: ">=4.1.0"
-  amoled_co5300:
-    path: "../components/amoled_co5300"
   board:
     path: "../components/board"
   gui:

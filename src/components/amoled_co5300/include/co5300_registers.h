@@ -21,7 +21,9 @@
 //           ADDRESSES            //
 // --- ---- --- ---- --- ---- --- //
 
+#define ADR_SLEEP_IN 0x10
 #define ADR_SLEEP_OUT 0x11
+#define ADR_DISPLAY_OFF 0x28
 #define ADR_DISPLAY_ON 0x29
 #define ADR_SET_COLUMN_START 0x2A
 #define ADR_SET_ROW_START 0x2B

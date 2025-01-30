@@ -97,7 +97,6 @@ void touch_conf_gpio(){
 void touch_init_gpio_int(){
     touch_conf_gpio();
     gpio_set_intr_type(TOUCH_INT_GPIO, GPIO_INTR_ANYEDGE);
-    gpio_install_isr_service(0);
     gpio_isr_handler_add(TOUCH_INT_GPIO, touch_isr_handler, 0);
 }
 

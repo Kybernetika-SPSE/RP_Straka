@@ -1,6 +1,5 @@
 #include "digital.h"
 #include "core/lv_obj.h"
-#include "esp_log.h"
 #include "gui.h"
 #include "widgets/label/lv_label.h"
 #include <sys/time.h>

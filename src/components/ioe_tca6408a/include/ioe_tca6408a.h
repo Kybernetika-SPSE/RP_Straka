@@ -1,7 +1,6 @@
 #ifndef IOE_TCA6406_H
 #define IOE_TCA6406_H
 #include "driver/i2c_types.h"
-#include <complex.h>
 #include <stdint.h>
 
 #define IOE_I2C_ADDRESS 0x21

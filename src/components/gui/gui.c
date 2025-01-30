@@ -117,6 +117,21 @@ void gui_init(void) {
     lv_style_set_border_side(&watchface_base, LV_BORDER_SIDE_NONE);
     lv_style_set_radius(&watchface_base, LV_RADIUS_CIRCLE);
     lv_style_set_pad_all(&watchface_base, 0);
+    /*Make a gradient*/
+    lv_style_set_bg_opa(&watchface_base, LV_OPA_COVER);
+    static lv_grad_dsc_t grad;
+    grad.dir = LV_GRAD_DIR_VER;
+    grad.stops_count = 2;
+    grad.stops[0].color = lv_color_hex(0x2e0c4d);
+    grad.stops[0].opa = LV_OPA_COVER;
+    grad.stops[1].color = lv_color_hex(0x0c134d);
+    grad.stops[1].opa = LV_OPA_COVER;
+
+    /*Shift the gradient to the bottom*/
+    grad.stops[0].frac  = 0;
+    grad.stops[1].frac  = 255;
+
+    lv_style_set_bg_grad(&watchface_base, &grad);
 
     // Add screen init callbacks to array
 

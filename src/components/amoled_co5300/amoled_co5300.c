@@ -94,3 +94,10 @@ void display_flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * 
     // ESP_LOGI(TAG, "flushed! X: %"PRIu32" -> %"PRIu32"(%"PRIu32"), Y: %"PRIu32" -> %"PRIu32"(%"PRIu32"), Time:%"PRIu64"", area->x1, area->x2,((area->x2+1) - area->x1), area->y1, area->y2, ((area->y2+1) - area->y1), esp_timer_get_time());
     lv_display_flush_ready(display);
 }
+
+void display_sleep(void){
+    display_send_spi(CMD_WRITE, ADR_SLEEP_IN, NULL, 0);
+}
+void display_wakeup(void){
+    display_send_spi(CMD_WRITE, ADR_SLEEP_OUT, NULL, 0);
+}

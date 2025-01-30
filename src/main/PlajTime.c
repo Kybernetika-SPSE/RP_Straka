@@ -27,7 +27,6 @@ void app_main() {
     lv_init();
     static uint8_t buf1[LVGL_BUFFER];
     static uint8_t buf2[LVGL_BUFFER];
-    init_CO5300();
     // DISPLAY
     lv_display_t * display = lv_display_create(466, 466);
     lv_display_set_buffers(display, buf1, buf2, LVGL_BUFFER, LV_DISPLAY_RENDER_MODE_PARTIAL);

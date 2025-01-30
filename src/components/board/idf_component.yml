@@ -5,3 +5,9 @@ dependencies:
     path: "../ioe_tca6408a"
   touch_chsc6x:
     path: "../touch_chsc6x"
+  pic_bq2562x:
+    path: "../pic_bq2562x"
+  ble_module:
+    path: "../ble_module"
+  amoled_co5300:
+    path: "../amoled_co5300"
