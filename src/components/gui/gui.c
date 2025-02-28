@@ -135,6 +135,6 @@ void gui_init(void) {
 
     // Add screen init callbacks to array
 
-    gui_screens[DEFAULT_SCREEN_X][DEFAULT_SCREEN_Y] = watchface_analog_init;
-    gui_screens[DEFAULT_SCREEN_X+1][DEFAULT_SCREEN_Y] = watchface_digital_init;
+    // gui_screens[1][0] = watchface_analog_init;
+    gui_screens[0][0] = watchface_digital_init;
 }

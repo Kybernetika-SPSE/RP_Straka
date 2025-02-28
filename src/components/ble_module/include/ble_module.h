@@ -1,8 +1,11 @@
 #ifndef BLE_MODULE_H
 #define BLE_MODULE_H
 
-#define DEVICE_NAME "NimBLE_GATT"
+#include "esp_err.h"
+#define DEVICE_NAME "PlajTime"
 
-void ble_init(void);
+esp_err_t ble_init(void);
+esp_err_t ble_sleep(void);
+esp_err_t ble_wakeup(void);
 
 #endif

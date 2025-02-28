@@ -1,117 +1,43 @@
 #include "ble_module.h"
+#include "esp_err.h"
 #include "esp_log.h"
-/* STD APIs */
-    // #include <assert.h>
-    #include <stdbool.h>
-    #include <stdio.h>
-    #include <string.h>
-
-/* ESP APIs */
-    #include "esp_log.h"
-    #include "nvs_flash.h"
-    // #include "sdkconfig.h"
-
-/* FreeRTOS APIs */
-    #include <freertos/FreeRTOS.h>
-    #include <freertos/task.h>
-
-/* NimBLE stack APIs */
-    #include "host/ble_hs.h"
-    // #include "host/ble_uuid.h"
-    // #include "host/util/util.h"
-    // #include "nimble/ble.h"
-    #include "nimble/nimble_port.h"
-    // #include "nimble/nimble_port_freertos.h"
-
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include "host/ble_hs.h"
+#include "nimble/nimble_port.h"
+#include "utils_module.h"
 #include "gap.h"
 #include "gatt_svc.h"
 
 static const char* TAG = "BLE-MAIN";
 
-void ble_store_config_init(void);
-
-static void on_stack_reset(int reason);
-static void on_stack_sync(void);
-static void nimble_host_config_init(void);
-static void nimble_host_task(void *param);
-
-static void on_stack_reset(int reason) {
-    /* On reset, print reset reason to console */
-    ESP_LOGI(TAG, "nimble stack reset, reset reason: %d", reason);
-}
-
-static void on_stack_sync(void) {
-    /* On stack sync, do advertising initialization */
-    adv_init();
-}
-
-static void nimble_host_config_init(void) {
-    /* Set host callbacks */
-    ble_hs_cfg.reset_cb = on_stack_reset;
-    ble_hs_cfg.sync_cb = on_stack_sync;
-    ble_hs_cfg.gatts_register_cb = gatt_svr_register_cb;
+static void set_nible_config(void) {
+    ble_hs_cfg.sync_cb = adv_init;
     ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
-
-    /* Store host configuration */
-    ble_store_config_init();
 }
 
 static void nimble_host_task(void *param) {
-    /* Task entry log */
     ESP_LOGI(TAG, "nimble host task has been started!");
-
-    /* This function won't return until nimble_port_stop() is executed */
     nimble_port_run();
-
-    /* Clean up at exit */
     vTaskDelete(NULL);
 }
 
-void ble_init(void) {
-    /* Local variables */
-    int rc;
-    esp_err_t ret;
-
-    /*
-    * NVS flash initialization
-    * Dependency of BLE stack to store configurations
-    */
-    ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
-        ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "failed to initialize nvs flash, error code: %d ", ret);
-        return;
-    }
-
-    /* NimBLE stack initialization */
-    ret = nimble_port_init();
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "failed to initialize nimble stack, error code: %d ",
-                    ret);
-        return;
-    }
-
-    /* GAP service initialization */
-    rc = gap_init();
-    if (rc != 0) {
-        ESP_LOGE(TAG, "failed to initialize GAP service, error code: %d", rc);
-        return;
-    }
-
-    /* GATT server initialization */
-    rc = gatt_svc_init();
-    if (rc != 0) {
-        ESP_LOGE(TAG, "failed to initialize GATT server, error code: %d", rc);
-        return;
-    }
-
-    /* NimBLE host configuration initialization */
-    nimble_host_config_init();
-
-    /* Start NimBLE host task thread and return */
+esp_err_t ble_init(void) {
+    CHECK_ERROR(nimble_port_init(), "failed to initialize nimble stack");
+    CHECK_ERROR(gap_init(), "failed to initialize nimble stack");
+    CHECK_ERROR(gatt_svc_init(), "failed to initialize GATT server");
+    set_nible_config();
     xTaskCreate(nimble_host_task, "NimBLE Host", 4*1024, NULL, 5, NULL);
+    return ESP_OK;
+}
+
+esp_err_t ble_sleep(void){
+    CHECK_ERROR(ble_gap_adv_stop(), "failed to stop advertising")
+    CHECK_ERROR(nimble_port_stop(), "failed to stop NimBLE");
+    CHECK_ERROR(nimble_port_deinit(), "failed to deinit NimBLE");
+    return ESP_OK;
+}
+
+esp_err_t ble_wakeup(void){
+    return ble_init();
 }

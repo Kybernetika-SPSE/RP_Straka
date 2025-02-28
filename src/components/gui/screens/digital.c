@@ -58,13 +58,15 @@ void watchface_digital_update_time(void)
     uint8_t time_min = (tm_struct->tm_min);
     uint8_t time_sec = (tm_struct->tm_sec);
 
-    int year = (tm_struct->tm_year) + 1900;
+    // The actual year is returned from 1900 but since we do % 100 we don't need to add that
+    // Otherwise the full year would be ((tm_struct->tm_year) + 1900)
+    int year = (tm_struct->tm_year) % 100;
     uint8_t mon = (tm_struct->tm_mon) + 1;
     uint8_t day = tm_struct->tm_mday;
 
-    sprintf(time_string, "%02d:%02d:%02d", time_hour&0x1F, time_min&0x1F, time_sec&0x1F);
+    sprintf(time_string, "%02d:%02d:%02d", time_hour&0x1F, time_min&0x3F, time_sec&0x3F);
 
-    sprintf(date_string, "%d. %02d. %02d", day&0x1F, mon&0xF, year&0x1F);
+    sprintf(date_string, "%02d. %02d. %02d", day&0x1F, mon&0xF, year);
 
     lv_obj_invalidate(label_clock);
     lv_obj_invalidate(label_date);

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <math.h>
 #include "pic_bq2562x.h"
+#include <unistd.h>
 
 static const char *TAG = "BQ256x";
 
@@ -104,8 +105,12 @@ static void BQ2562x_writeReg(Register reg, uint16_t data) {
     i2c_master_transmit(dev_handle, (uint8_t[]){reg.address, bytes}, reg.size+1, -1);
 }
 
-static float BQ2562x_map(uint16_t raw, float step, uint16_t min, uint16_t max) {
-    return ((min && max) && (raw >= min && raw <= max)) ? ((max - raw + 1) * (-1) * step) : (raw * step);
+static float BQ2562x_fromRaw(uint16_t raw, float step, uint16_t origin) {
+    return (raw - origin) * step;
+}
+
+static uint16_t BQ2562x_toRaw(uint16_t value, uint16_t step, uint16_t origin) {
+    return origin + (value/step);
 }
 
 // public functions
@@ -128,19 +133,20 @@ bool BQ2562x_getWD() {
 uint16_t BQ2562x_getVBUS()
 {
     uint16_t value = BQ2562x_readReg(VBUS_ADC);
-    return round(BQ2562x_map(value, 3.97f, 0x0, 0xffff));
+    return round(BQ2562x_fromRaw(value, 3.97f, 0x0));
 }
 
 int16_t BQ2562x_getIBUS()
 {
     uint16_t value = BQ2562x_readReg(IBUS_ADC);
-    return round(BQ2562x_map(value, 2.0f, 0x7830, 0x7fff));
+    uint16_t origin = (value >= 0x7830 && value <= 0x7fff) ? 0x7fff + 1 : 0;
+    return round(BQ2562x_fromRaw(value, 2.0f, origin));
 }
 
 uint16_t BQ2562x_getVBAT()
 {
     uint16_t value = BQ2562x_readReg(VBAT_ADC);
-    return round(BQ2562x_map(value, 1.99f, 0x0, 0xffff));
+    return round(BQ2562x_fromRaw(value, 1.99f, 0x0));
 }
 
 int16_t BQ2562x_getIBAT()
@@ -149,7 +155,8 @@ int16_t BQ2562x_getIBAT()
     uint16_t value = BQ2562x_readReg(IBAT_ADC);
     if (value != invalid)
     {
-        return round(BQ2562x_map(value, 4.0f, 0x38ad, 0x3fff));
+        uint16_t origin = (value >= 0x38ad && value <= 0x3fff) ? 0x3fff + 1 : 0;
+        return round(BQ2562x_fromRaw(value, 4.0f, origin));
     }
     return invalid;
 }
@@ -157,6 +164,12 @@ int16_t BQ2562x_getIBAT()
 bool BQ2562x_getADCDone()
 {
     bool value = BQ2562x_readReg(Charger_Status_0_ADC_DONE);
+    return value;
+}
+
+bool BQ2562x_getChargingEnabled()
+{
+    bool value = BQ2562x_readReg(Charger_Control_0_EN_CHG);
     return value;
 }
 
@@ -173,7 +186,7 @@ bool BQ2562x_getTSEnabled()
 float BQ2562x_getTSBias()
 {
     uint16_t value = BQ2562x_readReg(TS_ADC);
-    return BQ2562x_map(value, 0.0961f, 0x0, 0xffff) / 100.0f;
+    return BQ2562x_fromRaw(value, 0.0961f, 0x0) / 100.0f;
 }
 
 BQ2562x_VBUSStat BQ2562x_getVBUSStat()
@@ -205,17 +218,26 @@ BQ2562x_ChargeStat BQ2562x_getChargeStat()
     return stat;
 }
 
+uint8_t BQ2562x_getFaultStatus()
+{
+    return BQ2562x_readReg(FAULT_Status_0);
+}
+
+uint8_t BQ2562x_getFaultFlag()
+{
+    return BQ2562x_readReg(FAULT_Flag_0);
+}
+
 uint8_t BQ2562x_getPartInformation()
 {
     return BQ2562x_readReg(Part_Information);
 }
 
-uint8_t BQ2562x_readCurentLimit()
+uint16_t BQ2562x_getChargeCurrentLimit()
 {
-    return BQ2562x_readReg(Charge_Current_Limit_ICHG);
+    uint16_t current = BQ2562x_readReg(Charge_Current_Limit_ICHG);
+    return round(BQ2562x_fromRaw(current, 40.0f, 0x0));
 }
-
-// TODO: Tady jsem skončil...
 
 void BQ2562x_setWD(BQ2562x_WatchdogTimer timer)
 {
@@ -274,11 +296,11 @@ void BQ2562x_enableADC(BQ2562x_Adc adc, bool enable)
     return BQ2562x_writeReg(reg, !enable);
 }
 
-void BQ2562x_setChargeCurrent(uint16_t current)
+void BQ2562x_setChargeCurrentLimit(uint16_t current)
 {
     if (current >= BQ2562X_MIN_CHARGING_CURRENT && current <= BQ2562X_MAX_CHARGING_CURRENT)
     {
-        uint16_t value = round(BQ2562x_map(current, 1/40.0f, 0x0, 0xffff));
+        uint16_t value = round(BQ2562x_toRaw(current, 40, 0x0));
         BQ2562x_writeReg(Charge_Current_Limit_ICHG, value);
     }
 }
@@ -299,7 +321,7 @@ void BQ2562x_setVINDPM(uint16_t voltage)
 {
     if (voltage >= BQ2562X_MIN_VINDPM_VOLTAGE && voltage <= BQ2562X_MAX_VINDPM_VOLTAGE)
     {
-        uint16_t value = round(BQ2562x_map(voltage, 1/40.0f, 0x0, 0xffff));
+        uint16_t value = BQ2562x_toRaw(voltage, 40, 0x0);
         BQ2562x_writeReg(Input_Current_Limit_VINDPM, value);
     }
 }
@@ -308,7 +330,7 @@ void BQ2562x_setIINDPM(uint16_t current)
 {
     if (current >= BQ2562X_MIN_IINDPM_CURRENT && current <= BQ2562X_MAX_IINDPM_CURRENT)
     {
-        uint16_t value = round(BQ2562x_map(current, 1/20.0f, 0x0, 0xffff));
+        uint16_t value = BQ2562x_toRaw(current, 20, 0x0);
         BQ2562x_writeReg(Input_Current_Limit_IINDPM, value);
     }
 }
@@ -317,7 +339,7 @@ void BQ2562x_setITERM(uint16_t current)
 {
     if (current >= BQ2562X_MIN_ITERM_CURRENT && current <= BQ2562X_MAX_ITERM_CURRENT)
     {
-        uint16_t value = round(BQ2562x_map(current, 1/5.0f, 0x0, 0xffff));
+        uint16_t value = BQ2562x_toRaw(current, 5, 0x0);
         BQ2562x_writeReg(Termination_Control_0_ITERM, value);
     }
 }
@@ -370,12 +392,12 @@ void BQ2562x_setTempIset(BQ2562x_TempPoint point, BQ2562x_TempIset iset)
     BQ2562x_writeReg(reg, (uint8_t)(iset));
 }
 
-void BQ2562x_setupADC_defaults()
+void BQ2562x_setupADC_oneshot()
 {
     uint8_t value = true << ADC_Control_ADC_EN.start;
     if (value)
     {
-        value |= (uint8_t)(BQ2562X_ADC_RATE_CONTINUOUS) << ADC_Control_ADC_RATE.start;
+        value |= (uint8_t)(BQ2562X_ADC_RATE_ONESHOT) << ADC_Control_ADC_RATE.start;
         value |= (uint8_t)(BQ2562X_ADC_SAMPLING_12_BITS) << ADC_Control_ADC_SAMPLE.start;
         value |= (uint8_t)(BQ2562X_ADC_AVERAGE_SINGLE) << ADC_Control_ADC_AVG.start;
         value |= (uint8_t)(BQ2562X_ADC_AVERAGE_INIT_EXISTING) << ADC_Control_ADC_AVG_INIT.start;

@@ -8,6 +8,9 @@
 
 extern spi_device_handle_t spi_lcd_handle;
 
+#define AMOLED_SPI_CS 10
+#define DISPLAY_SPI_HOST    SPI2_HOST
+
 #define DELAY_MS(ms) vTaskDelay(pdMS_TO_TICKS(ms))
 
 #define INIT_CMDS(send) \
@@ -27,12 +30,12 @@ extern spi_device_handle_t spi_lcd_handle;
         send(CMD_WRITE, ADR_DISPLAY_ON, NULL, 0); \
         send(CMD_WRITE, ADR_SET_BRIGHTNESS, (uint8_t[]){0xFF}, 1); \
     } while (0)
-// TODO: rewrite ADR_SET_COLUMN_START setting of display size and offset
 
-void init_CO5300(void);
+esp_err_t display_minimal_init(void);
+esp_err_t display_full_init(void);
 void display_flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * px_map);
-void display_set_draw_zone(uint16_t Xstart, uint16_t Xend, uint16_t Ystart, uint16_t Yend);
-void display_send_pixels(uint8_t* data, size_t data_len);
-void display_sleep(void);
-void display_wakeup(void);
+esp_err_t display_set_draw_zone(uint16_t Xstart, uint16_t Xend, uint16_t Ystart, uint16_t Yend);
+esp_err_t display_send_pixels(uint8_t* data, size_t data_len);
+esp_err_t display_sleep(void);
+esp_err_t display_wakeup(void);
 #endif

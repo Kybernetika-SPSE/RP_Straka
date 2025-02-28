@@ -1,6 +1,7 @@
 #ifndef TOUCH_CHSC6X_H
 #define TOUCH_CHSC6X_H
 #include "driver/i2c_types.h"
+#include "esp_err.h"
 #include "indev/lv_indev.h"
 
 struct TouchHardwareSettings{
@@ -33,7 +34,7 @@ struct{
     bool pressed;
 } typedef touch_data_t;
 
-void touch_init(i2c_master_bus_handle_t bus_handle);
+esp_err_t touch_init(i2c_master_bus_handle_t bus_handle);
 void touch_set_callback(void (*cb)(), void* args);
 touch_data_t touch_get_data(void);
 void touch_lvgl_cb (lv_indev_t * indev, lv_indev_data_t * data);

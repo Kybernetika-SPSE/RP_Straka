@@ -18,7 +18,7 @@ static SemaphoreHandle_t gui_mux = NULL;
 
 // Screen layout
 
-#define SCREENS_WIDTH 3
+#define SCREENS_WIDTH 1
 #define SCREENS_HEIGHT 1
 
 #define DEFAULT_SCREEN_X 0

@@ -4,3 +4,5 @@ dependencies:
     version: master
   idf:
     version: ">=4.1.0"
+  utils_module:
+    path: "../utils_module"

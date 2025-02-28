@@ -1,12 +1,18 @@
 #include "touch_chsc6x.h"
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
-#include "esp_log.h"
+#include "esp_log.h" // IWYU pragma: keep
 #include "hal/gpio_types.h"
 #include "freertos/FreeRTOS.h" // IWYU pragma: keep
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "utils_module.h"
+
+static const char* TAG = "Touch";
+
+static void (*touch_callback)(void *) = NULL;
+static void* touch_callback_args = NULL;
 
 static i2c_master_dev_handle_t touch_dev_handle;
 static touch_data_t touch_buf; // touch can be as array of touches
@@ -48,6 +54,9 @@ static void touch_task(void* arg){
         if (!are_touches_same(last_touch, touch_now)){
             xSemaphoreTake(touch_mutex, portMAX_DELAY);
             touch_buf = touch_now;
+            if (touch_callback != NULL){
+                touch_callback(touch_callback_args);
+            }
             xSemaphoreGive(touch_mutex);
         }
     }
@@ -67,41 +76,49 @@ void touch_lvgl_cb (lv_indev_t * indev, lv_indev_data_t * data){
     xSemaphoreGive(touch_mutex);
 }
 
-void init_i2c_dev(i2c_master_bus_handle_t bus_handle){
+esp_err_t init_i2c_dev(i2c_master_bus_handle_t bus_handle){
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = TOUCH_I2C_ADDRESS,
         .scl_speed_hz = TOUCH_I2C_CLOCK,
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg, &touch_dev_handle));
+    return i2c_master_bus_add_device(bus_handle, &dev_cfg, &touch_dev_handle);
 }
 
-void create_touch_mutex(){
+esp_err_t create_touch_mutex(){
     touch_mutex = xSemaphoreCreateMutex();
     if (touch_mutex == NULL) {
-        ESP_LOGE("Touch", "Failed to create touch mutex");
-        return;
+        return ESP_FAIL;
     }
+    return ESP_OK;
 }
 
-void touch_conf_gpio(){
+esp_err_t touch_conf_gpio(){
     gpio_config_t io_conf = {
         .intr_type = GPIO_INTR_POSEDGE,
         .pin_bit_mask = 1ULL<<TOUCH_INT_GPIO,
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = true
     };
-    gpio_config(&io_conf);
+    return gpio_config(&io_conf);
 }
 
-void touch_init_gpio_int(){
-    touch_conf_gpio();
-    gpio_set_intr_type(TOUCH_INT_GPIO, GPIO_INTR_ANYEDGE);
-    gpio_isr_handler_add(TOUCH_INT_GPIO, touch_isr_handler, 0);
+esp_err_t touch_init_gpio_int(){
+    CHECK_ERROR(touch_conf_gpio(), "Failed to configure touch gpio");
+    CHECK_ERROR(gpio_set_intr_type(TOUCH_INT_GPIO, GPIO_INTR_ANYEDGE), "Failed to set touch gpio intr type");
+    CHECK_ERROR(gpio_isr_handler_add(TOUCH_INT_GPIO, touch_isr_handler, 0), "Failed to add touch isr handler");
+    return ESP_OK;
 }
 
-void touch_init(i2c_master_bus_handle_t bus_handle) {
-    init_i2c_dev(bus_handle);
-    create_touch_mutex();
-    touch_init_gpio_int();
+esp_err_t touch_init(i2c_master_bus_handle_t bus_handle) {
+    CHECK_ERROR(init_i2c_dev(bus_handle), "Failed to init touch i2c device");
+    CHECK_ERROR(create_touch_mutex(), "Failed to create touch mutex");
+    CHECK_ERROR(touch_init_gpio_int(), "Failed to init touch gpio int");
+    return ESP_OK;
+}
+
+
+void touch_set_callback(void (*cb)(), void* args){
+    touch_callback = cb;
+    touch_callback_args = args;
 }

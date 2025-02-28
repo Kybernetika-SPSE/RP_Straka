@@ -136,7 +136,7 @@ typedef enum {
 
 // Function declarations
 void BQ2562x_init(i2c_master_bus_handle_t bus_handle);
-void BQ2562x_setupADC_defaults();
+void BQ2562x_setupADC_oneshot();
 
 bool BQ2562x_getWD();
 uint16_t BQ2562x_getVBUS();
@@ -144,12 +144,15 @@ int16_t BQ2562x_getIBUS();
 uint16_t BQ2562x_getVBAT();
 int16_t BQ2562x_getIBAT();
 bool BQ2562x_getADCDone();
+bool BQ2562x_getChargingEnabled();
 bool BQ2562x_getTSEnabled();
 float BQ2562x_getTSBias();
 BQ2562x_VBUSStat BQ2562x_getVBUSStat();
 BQ2562x_ChargeStat BQ2562x_getChargeStat();
+uint8_t BQ2562x_getFaultStatus();
+uint8_t BQ2562x_getFaultFlag();
 uint8_t BQ2562x_getPartInformation();
-uint8_t BQ2562x_readCurentLimit();
+uint16_t BQ2562x_getChargeCurrentLimit();
 
 void BQ2562x_setWD(BQ2562x_WatchdogTimer timer);
 void BQ2562x_enableCharging(bool enable);
@@ -159,7 +162,7 @@ void BQ2562x_enableInterrupts(bool enable);
 void BQ2562x_enableInterrupt(BQ2562x_Interrupt interrupt, bool enable);
 void BQ2562x_enableWVBUS(bool enable);
 void BQ2562x_enableADC(BQ2562x_Adc adc, bool enable);
-void BQ2562x_setChargeCurrent(uint16_t current);
+void BQ2562x_setChargeCurrentLimit(uint16_t current);
 void BQ2562x_setBATFETControl(BQ2562x_BATFETControl control);
 void BQ2562x_setBATFETDelay(BQ2562x_BATFETDelay delay);
 void BQ2562x_setVINDPM(uint16_t voltage);

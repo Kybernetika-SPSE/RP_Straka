@@ -11,3 +11,5 @@ dependencies:
     path: "../ble_module"
   amoled_co5300:
     path: "../amoled_co5300"
+  utils_module:
+    path: "../utils_module"

@@ -40,5 +40,5 @@ void app_main() {
 
     gui_init();
 
-    gui_screen_transition(DEFAULT_SCREEN_X+1, DEFAULT_SCREEN_Y, LV_SCR_LOAD_ANIM_NONE);
+    gui_screen_transition(DEFAULT_SCREEN_X, DEFAULT_SCREEN_Y, LV_SCR_LOAD_ANIM_NONE);
 }

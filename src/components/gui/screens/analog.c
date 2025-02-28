@@ -1,6 +1,5 @@
 #include "analog.h"
 #include "core/lv_obj.h"
-#include "draw/sw/lv_draw_sw_gradient.h"
 #include "misc/lv_palette.h"
 #include "widgets/label/lv_label.h"
 #include "widgets/line/lv_line.h"
