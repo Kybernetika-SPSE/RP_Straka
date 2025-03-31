@@ -97,19 +97,32 @@ void gui_screen_jump(void){
     gui_screen_transition(DEFAULT_SCREEN_X, DEFAULT_SCREEN_Y, LV_SCR_LOAD_ANIM_FADE_ON);
 }
 
+void gui_start_timers(void){
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, PERIOD_MS * 1000));
+
+    vTaskResume(gui_task_handle);
+}
+
+void gui_stop_timers(void){
+    ESP_ERROR_CHECK(esp_timer_stop(lvgl_tick_timer));
+
+    vTaskSuspend(gui_task_handle);
+}
+
 void gui_init(void) {
     // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
     const esp_timer_create_args_t lvgl_tick_timer_args = {
         .callback = &gui_increase_lvgl_tick,
         .name = "lvgl_tick"
     };
-    esp_timer_handle_t lvgl_tick_timer = NULL;
+    lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, PERIOD_MS * 1000));
 
     gui_mux = xSemaphoreCreateMutex();
     assert(gui_mux);
-    xTaskCreate(gui_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, NULL);
+
+    xTaskCreate(gui_task, "LVGL", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, &gui_task_handle);
+    vTaskSuspend(gui_task_handle);
 
     lv_style_init(&watchface_base);
     lv_style_set_bg_color(&watchface_base, lv_color_hex(0x000000));

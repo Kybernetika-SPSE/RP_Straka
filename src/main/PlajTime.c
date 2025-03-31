@@ -39,6 +39,7 @@ void app_main() {
     lv_indev_set_read_cb(indev, touch_lvgl_cb);
 
     gui_init();
+    gui_start_timers();
 
     gui_screen_transition(DEFAULT_SCREEN_X, DEFAULT_SCREEN_Y, LV_SCR_LOAD_ANIM_NONE);
 }

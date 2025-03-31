@@ -5,6 +5,7 @@
 
 #define IOE_I2C_ADDRESS 0x21
 #define IOE_I2C_CLOCK 100000
+#define IOE_NUM_PINS 8
 
 enum ioe_regs {
     ioe_reg_input,
@@ -18,7 +19,7 @@ enum ioe_direction{
     ioe_dir_input
 };
 
-// Move pins definition to separate board component
+// TODO: Move pins definition to separate board component
 enum ioe_pins {
     ioe_imu_int,
     ioe_dp_res,
@@ -30,10 +31,14 @@ enum ioe_pins {
     ioe_pic_int
 };
 
+static void (*ioe_irq_callbacks[8])();
+
 void ioe_init(i2c_master_bus_handle_t bus_handle);
 uint8_t ioe_get_reg(enum ioe_regs reg);
 void ioe_set_reg(enum ioe_regs reg, uint8_t byte);
 uint8_t ioe_get_reg_pin(enum ioe_regs reg, enum ioe_pins pin);
 void ioe_set_reg_pin(enum ioe_regs reg, enum ioe_pins pin, uint8_t value);
 uint8_t ioe_read_pin_input(enum ioe_pins pin);
+void ioe_add_pin_interrupt(uint8_t pin, void* callback);
+void ioe_init_interrupt(uint8_t pin);
 #endif

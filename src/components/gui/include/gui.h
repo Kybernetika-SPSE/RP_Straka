@@ -4,6 +4,7 @@
 #include <src/display/lv_display.h>
 #include "freertos/idf_additions.h"
 #include "misc/lv_style.h"
+#include "esp_timer.h"
 
 typedef lv_obj_t* (*gui_screen_cb_t)(void);
 
@@ -15,6 +16,8 @@ typedef lv_obj_t* (*gui_screen_cb_t)(void);
 #define LVGL_TASK_MAX_DELAY 33
 
 static SemaphoreHandle_t gui_mux = NULL;
+static esp_timer_handle_t lvgl_tick_timer = NULL;
+static TaskHandle_t gui_task_handle = NULL;
 
 // Screen layout
 
@@ -36,5 +39,7 @@ extern gui_screen_cb_t gui_screens[SCREENS_WIDTH][SCREENS_HEIGHT];
 extern lv_style_t watchface_base;
 
 void gui_screen_transition(uint8_t new_x, uint8_t new_y, lv_screen_load_anim_t anim);
+void gui_start_timers(void);
+void gui_stop_timers(void);
 void gui_init(void);
 #endif

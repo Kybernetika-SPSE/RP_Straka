@@ -3,6 +3,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "ioe_tca6408a.h"
+#include "driver/gpio.h"
+#include "freertos/FreeRTOS.h" // IWYU pragma: keep
+#include "freertos/task.h"
+#include "esp_log.h"
+
 
 static i2c_master_dev_handle_t dev_handle;
 
@@ -52,4 +57,47 @@ uint8_t ioe_read_pin_input(enum ioe_pins pin) {
     else { //If pin isn't input return 255
         return 255;
     }
+}
+
+// Pin on the IOE, pointer to callback
+void ioe_add_pin_interrupt(uint8_t pin, void* callback) {
+    assert(pin < IOE_NUM_PINS);
+
+    ioe_irq_callbacks[pin] = callback;
+}
+
+// Debugging functions
+static void ioe_test_interrupt(void* arg) {
+    ESP_LOGI("IOE", "Interrupt callback");
+    uint8_t reg_input = ioe_get_reg(ioe_reg_input);
+    uint8_t reg_direction = ioe_get_reg(ioe_reg_direction);
+
+    for (int i = 0; i < IOE_NUM_PINS; i++) {
+        if (((reg_direction>>i) & ioe_dir_input) && ((reg_input>>i) & 1)) { // If pin is 1 and is input
+            ESP_LOGI("IOE", "Interrupt callback on pin %d", i);
+            if (ioe_irq_callbacks[i] != NULL){
+                ioe_irq_callbacks[i]();
+            }
+        }
+    }
+    vTaskDelete(NULL);
+}
+
+// Will this work???
+//static void IRAM_ATTR ioe_interrupt_callback(void* arg){
+static void ioe_interrupt_callback(void* arg){
+    xTaskCreate(ioe_test_interrupt, "ioe_test_interrupt", 2048, arg, 10, NULL);
+}
+
+// Actual pin of the SoC
+void ioe_init_interrupt(uint8_t pin) {
+    gpio_config_t io_conf = {
+        .intr_type = GPIO_INTR_NEGEDGE,
+        .pin_bit_mask = 1ULL<<pin,
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = true
+    };
+
+    gpio_config(&io_conf);
+    gpio_isr_handler_add(pin, ioe_interrupt_callback, NULL);
 }

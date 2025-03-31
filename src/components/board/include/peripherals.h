@@ -16,6 +16,8 @@
 #define BOARD_SPI_DATA2 5
 #define BOARD_SPI_DATA3 4
 
+#define BOARD_INT2_IOE 1
+
 #define LCD_H_RES 466
 #define LCD_V_RES 466
 

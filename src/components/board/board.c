@@ -9,6 +9,7 @@
 #include "touch_chsc6x.h"
 #include "pic_bq2562x.h"
 #include "amoled_co5300.h"
+#include "imu_icm42570.h"
 #include "peripherals.h"
 #include "ble_module.h"
 #include "battery.h"
@@ -60,6 +61,10 @@ void board_full_init_components(i2c_master_bus_handle_t i2c_bus_handle){
     pic_create_periodic_timer(&meassure_battery);
     pic_set_board_defaults();
     touch_init(i2c_bus_handle);
+    ioe_init_interrupt(BOARD_INT2_IOE);
+    imu_init(i2c_bus_handle);
+    imu_setup_apex();
+    imu_setup_debug_polling();
 }
 
 void board_init(void) {

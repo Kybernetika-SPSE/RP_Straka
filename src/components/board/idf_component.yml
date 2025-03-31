@@ -13,3 +13,5 @@ dependencies:
     path: "../amoled_co5300"
   utils_module:
     path: "../utils_module"
+  imu_icm42570:
+    path: "../imu_icm42570"

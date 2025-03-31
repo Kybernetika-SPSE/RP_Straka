@@ -26,6 +26,7 @@ void meassure_battery(){
     uint8_t fault_stat = BQ2562x_getFaultStatus();
     bool ts_en = BQ2562x_getTSEnabled();
 
+    #ifdef BATTERY_DEBUG_LOGGING
     ESP_LOGI(TAG, "Testing, getting BATT V : %d", vbat);
     ESP_LOGI(TAG, "Testing, getting BATT I : %d", ibat);
     ESP_LOGI(TAG, "Testing, getting BUS V : %d", vbus);
@@ -38,6 +39,7 @@ void meassure_battery(){
     ESP_LOGI(TAG, "Testing, getting TS bias: %f", BQ2562x_getTSBias());
     ESP_LOGI(TAG, "Testing, getting current limit: %d", BQ2562x_getChargeCurrentLimit());
     ESP_LOGI(TAG, "Testing, is it even set to charge? %d", BQ2562x_getChargingEnabled());
+    #endif
 
     if (ts_en != TS_INSTALLED) {
         BQ2562x_enableTS(TS_INSTALLED);  // TODO: Actually fix this, instead of bruteforcing it...

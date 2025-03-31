@@ -1,0 +1,111 @@
+menu "PlajTime Board configuration"
+menu "Battery Settings"
+config BATTERY_ASK_PERIOD_MS
+    int "Battery ask interval (ms)"
+    range 1000 30000
+    default 5000
+    help
+        This option sets the interval, in milliseconds, at which the system queries
+        the battery status. A lower value results in more frequent updates but may
+        increase power consumption. The default is 5000 ms (5 seconds).
+config BATTERY_DEBUG_LOGGING
+    bool "Enable Battery Debug Logging"
+    default y
+    help
+        Enable this option to log battery-related information for debugging purposes.
+config TS_INSTALLED
+    bool "Enable Thermistor Sensing"
+    default y
+    help
+        Enable this option to activate thermistor-based temperature sensing.
+        When enabled, the system will read temperature data from the connected
+        thermistor. If disabled, temperature sensing will be skipped.
+endmenu
+menu "Button Settings"
+config BUTTON_COOLDOWN_MS
+    int "Button cooldown time (ms)"
+    range 0 1000
+    default 300
+    help
+        Specifies the cooldown period in milliseconds after a button press
+        before another press is registered. This helps prevent accidental
+        double presses due to switch bouncing or unintended rapid inputs.
+
+        The valid range is 0 to 1000 ms. Setting it too low may lead to false
+        triggers, while a higher value can make the button feel unresponsive.
+        The default is 300 ms.
+config BUTTON_HOLD_MS
+    int "Button hold duration (ms)"
+    range 0 5000
+    default 500
+    help
+        Defines the duration in milliseconds a button must be continuously
+        held down to register as a "hold" action.
+
+        The valid range is 0 to 5000 ms. A lower value may cause unintended
+        hold detections, while a higher value requires the user to hold the
+        button for a longer time before triggering a hold event.
+
+        The default is 500 ms.
+endmenu
+menu "Sleep Settings"
+choice DEFAULT_SLEEP_TIMER_PERIOD
+    prompt "Select Deep Sleep Timer Period"
+    default DEFAULT_SLEEP_30S
+
+config DEFAULT_SLEEP_OFF
+    bool "Disabled (-1)"
+
+config DEFAULT_SLEEP_5S
+    bool "5 seconds"
+
+config DEFAULT_SLEEP_10S
+    bool "10 seconds"
+
+config DEFAULT_SLEEP_15S
+    bool "15 seconds"
+
+config DEFAULT_SLEEP_30S
+    bool "30 seconds"
+    default y
+
+config DEFAULT_SLEEP_60S
+    bool "1 minute"
+
+config DEFAULT_SLEEP_300S
+    bool "5 minutes"
+
+config DEFAULT_SLEEP_900S
+    bool "15 minutes"
+
+endchoice
+config DEFAULT_SLEEP_TIMER_VALUE
+    int
+    default -1 if DEFAULT_SLEEP_OFF
+    default 5000 if DEFAULT_SLEEP_5S
+    default 10000 if DEFAULT_SLEEP_10S
+    default 15000 if DEFAULT_SLEEP_15S
+    default 30000 if DEFAULT_SLEEP_30S
+    default 60000 if DEFAULT_SLEEP_60S
+    default 300000 if DEFAULT_SLEEP_300S
+    default 900000 if DEFAULT_SLEEP_900S
+
+config DEEPSLEEP_PERIOD_MS
+    int "Deep sleep period (ms)"
+    range 1000 86400000
+    default 10000
+    help
+        Defines the duration in milliseconds that the ESP32 remains in deep sleep
+        before waking up to perform tasks (e.g., sensor readings) and then going
+        back to sleep.
+
+        The valid range is **1000 ms (1 second) to 86400000 ms (24 hours)**.
+
+        - **Shorter periods** (e.g., 1000-5000 ms) allow frequent sensor updates but
+            consume more power.
+        - **Longer periods** (e.g., minutes to hours) reduce power consumption but
+            update sensors less frequently.
+
+        The default is **10000 ms (10 seconds)**, balancing power efficiency and responsiveness.
+endmenu
+endmenu

@@ -1,0 +1,8 @@
+dependencies:
+  idf:
+    version: '>=4.1.0'
+  utils_module:
+    path: "../utils_module"
+  espressif/icm42670:
+    version: '^2.0.1'
+    public: True
